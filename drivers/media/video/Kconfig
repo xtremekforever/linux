@@ -81,6 +81,14 @@ menuconfig VIDEO_CAPTURE_DRIVERS
 
 if VIDEO_CAPTURE_DRIVERS && VIDEO_V4L2
 
+config VIDEO_AT91SAM9X5
+	tristate "Support for AT91SAM9X5 Video"
+	depends on ARCH_AT91SAM9X5
+	depends on VIDEO_V4L2
+	select VIDEOBUF2_DMA_CONTIG
+	help
+	  support for the "High End Overlay" found in Atmel's AT91SAM9X5 SoCs.
+
 config VIDEO_ADV_DEBUG
 	bool "Enable advanced debug functionality"
 	default n
@@ -879,6 +887,14 @@ config VIDEO_MX3
 	select MX3_VIDEO
 	---help---
 	  This is a v4l2 driver for the i.MX3x Camera Sensor Interface
+
+config VIDEO_ATMEL_ISI
+	tristate "ATMEL Image Sensor Interface (ISI) support"
+	depends on VIDEO_DEV && SOC_CAMERA && ARCH_AT91
+	select VIDEOBUF2_DMA_CONTIG
+	---help---
+	  This module makes the ATMEL Image Sensor Interface available
+	  as a v4l2 device.
 
 config VIDEO_PXA27x
 	tristate "PXA27x Quick Capture Interface driver"

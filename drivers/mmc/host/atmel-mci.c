@@ -236,7 +236,7 @@ static bool mci_has_rwproof(void)
  */
 static inline bool atmci_is_mci2(void)
 {
-	if (cpu_is_at91sam9g45())
+	if (cpu_is_at91sam9g45() || cpu_is_at91sam9x5())
 		return true;
 
 	return false;
@@ -943,15 +943,28 @@ static void atmci_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
 		}
 
 		/* Calculate clock divider */
-		clkdiv = DIV_ROUND_UP(host->bus_hz, 2 * clock_min) - 1;
-		if (clkdiv > 255) {
-			dev_warn(&mmc->class_dev,
-				"clock %u too slow; using %lu\n",
-				clock_min, host->bus_hz / (2 * 256));
-			clkdiv = 255;
-		}
+		if (!cpu_is_at91sam9x5()) {
+			clkdiv = DIV_ROUND_UP(host->bus_hz, 2 * clock_min) - 1;
+			if (clkdiv > 255) {
+				dev_warn(&mmc->class_dev,
+					"clock %u too slow; using %lu\n",
+					clock_min, host->bus_hz / (2 * 256));
+				clkdiv = 255;
+			}
 
-		host->mode_reg = MCI_MR_CLKDIV(clkdiv);
+			host->mode_reg = MCI_MR_CLKDIV(clkdiv);
+		} else {
+			clkdiv = DIV_ROUND_UP(host->bus_hz, clock_min) - 2;
+			if (clkdiv > 511) {
+				dev_warn(&mmc->class_dev,
+					"clock %u too slow; using %lu\n",
+					clock_min, host->bus_hz / (511 + 2));
+				clkdiv = 511;
+			}
+
+			host->mode_reg = MCI_MR_CLKDIV(clkdiv >> 1)
+					| MCI_MR_CLKODD(clkdiv & 1);
+		}
 
 		/*
 		 * WRPROOF and RDPROOF prevent overruns/underruns by
@@ -1878,8 +1891,59 @@ static int __exit atmci_remove(struct platform_device *pdev)
 	return 0;
 }
 
+#ifdef CONFIG_PM
+static int atmci_suspend(struct platform_device *pdev, pm_message_t mesg)
+{
+	struct atmel_mci *host = platform_get_drvdata(pdev);
+	struct atmel_mci_slot *slot;
+	int i, ret;
+
+	 for (i = 0; i < ATMEL_MCI_MAX_NR_SLOTS; i++) {
+		slot = host->slot[i];
+		if (!slot)
+			continue;
+		ret = mmc_suspend_host(slot->mmc);
+		if (ret < 0) {
+			while (--i >= 0) {
+				slot = host->slot[i];
+				if (slot)
+					mmc_resume_host(host->slot[i]->mmc);
+			}
+			return ret;
+		}
+	}
+
+	return 0;
+}
+
+static int atmci_resume(struct platform_device *pdev)
+{
+	struct atmel_mci *host = platform_get_drvdata(pdev);
+	struct atmel_mci_slot *slot;
+	int i, ret;
+
+	for (i = 0; i < ATMEL_MCI_MAX_NR_SLOTS; i++) {
+		slot = host->slot[i];
+		if (!slot)
+			continue;
+		ret = mmc_resume_host(slot->mmc);
+		if (ret < 0)
+			return ret;
+	}
+
+	return 0;
+}
+#else
+#define atmci_suspend	NULL
+#define atmci_resume	NULL
+#endif
+
+
+
 static struct platform_driver atmci_driver = {
 	.remove		= __exit_p(atmci_remove),
+	.suspend	= atmci_suspend,
+	.resume		= atmci_resume,
 	.driver		= {
 		.name		= "atmel_mci",
 	},
