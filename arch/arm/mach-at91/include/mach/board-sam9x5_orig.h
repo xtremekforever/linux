@@ -75,10 +75,8 @@
 #define cm_is_revA()	(cm_rev() == 0)
 #define cm_is_revB()	(cm_rev() == ('B' - 'A'))
 
-//#define ek_is_revA()	(ek_rev() == 0)
-//#define ek_is_revB()	(ek_rev() == ('B' - 'A'))
-#define ek_is_revA()    0
-#define ek_is_revB()    1
+#define ek_is_revA()	(ek_rev() == 0)
+#define ek_is_revB()	(ek_rev() == ('B' - 'A'))
 
 /* Configuration of CPU Module useful for mother board */
 #define CM_CONFIG_SPI0_ENABLE	(1 <<  0)
