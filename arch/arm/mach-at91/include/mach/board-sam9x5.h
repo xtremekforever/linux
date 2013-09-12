@@ -72,8 +72,11 @@
 #define dm_rev()	OWI_BFEXT(DM_REV, system_rev)
 #define ek_rev()	OWI_BFEXT(EK_REV, system_rev)
 
-#define cm_is_revA()	(cm_rev() == 0)
-#define cm_is_revB()	(cm_rev() == ('B' - 'A'))
+//#define cm_is_revA()	(cm_rev() == 0)
+//#define cm_is_revB()	(cm_rev() == ('B' - 'A'))
+
+#define cm_is_revA()    0
+#define cm_is_revB()    1
 
 //#define ek_is_revA()	(ek_rev() == 0)
 //#define ek_is_revB()	(ek_rev() == ('B' - 'A'))
