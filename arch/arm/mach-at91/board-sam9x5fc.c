@@ -1,7 +1,7 @@
 /*
- *  Board-specific setup code for the Ahern AT91SAM9x5 Fuel Controller
+ *  Board-specific setup code for the AT91SAM9x5 Evaluation Kit family
  *
- *  Copyright (C) 2013 Ahern & Zamora Studios
+ *  Copyright (C) 2010 Atmel Corporation.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -46,7 +46,7 @@
 
 #include "sam9_smc.h"
 #include "generic.h"
-#include <mach/board-sam9x5fc.h>
+#include <mach/board-sam9x5.h>
 
 static void __init ek_map_io(void)
 {
@@ -336,25 +336,41 @@ static struct i2c_board_info __initdata ek_i2c_devices[] = {
 
 static void __init ek_board_configure_pins(void)
 {
-	/* Port A is shared with gadget port */
-	/*ek_usbh_fs_data.vbus_pin[0] = AT91_PIN_PD18;*/
-	/*ek_usbh_hs_data.vbus_pin[0] = AT91_PIN_PD18;*/
-	ek_usbh_fs_data.vbus_pin[1] = AT91_PIN_PD19;
-	ek_usbh_hs_data.vbus_pin[1] = AT91_PIN_PD19;
-	/* Port C is full-speed only */
-	ek_usbh_fs_data.vbus_pin[2] = AT91_PIN_PD20;
+	if (ek_is_revA()) {
+		/* Port A is shared with gadget port */
+		/*ek_usbh_fs_data.vbus_pin[0] = AT91_PIN_PD9;*/
+		/*ek_usbh_hs_data.vbus_pin[0] = AT91_PIN_PD9;*/
+		ek_usbh_fs_data.vbus_pin[1] = AT91_PIN_PD10;
+		ek_usbh_hs_data.vbus_pin[1] = AT91_PIN_PD10;
+		/* Port C is full-speed only */
+		ek_usbh_fs_data.vbus_pin[2] = AT91_PIN_PD11;
 
-	ek_usba_udc_data.vbus_pin = AT91_PIN_PB16;
+		ek_usba_udc_data.vbus_pin = AT91_PIN_PB8;
 
-	ek_macb0_data.phy_irq_pin = AT91_PIN_PB8;
+		ek_macb0_data.phy_irq_pin = 0;
 
-	mci0_data.slot[0].detect_pin = AT91_PIN_PD15;
+		mci0_data.slot[0].detect_pin = AT91_PIN_PD13;
+	} else {
+		/* Port A is shared with gadget port */
+		/*ek_usbh_fs_data.vbus_pin[0] = AT91_PIN_PD18;*/
+		/*ek_usbh_hs_data.vbus_pin[0] = AT91_PIN_PD18;*/
+		ek_usbh_fs_data.vbus_pin[1] = AT91_PIN_PD19;
+		ek_usbh_hs_data.vbus_pin[1] = AT91_PIN_PD19;
+		/* Port C is full-speed only */
+		ek_usbh_fs_data.vbus_pin[2] = AT91_PIN_PD20;
+
+		ek_usba_udc_data.vbus_pin = AT91_PIN_PB16;
+
+		ek_macb0_data.phy_irq_pin = AT91_PIN_PB8;
+
+		mci0_data.slot[0].detect_pin = AT91_PIN_PD15;
 
 #if defined(CONFIG_KEYBOARD_QT1070)
-	if (!cpu_is_at91sam9g25())
-		/* conflict with ISI */
-		at91_set_gpio_input(ek_i2c_devices[1].irq, 1);
+		if (!cpu_is_at91sam9g25())
+			/* conflict with ISI */
+			at91_set_gpio_input(ek_i2c_devices[1].irq, 1);
 #endif
+	}
 }
 
 static void __init ek_board_init(void)
@@ -432,13 +448,20 @@ static void __init ek_board_init(void)
 		/* this conflicts with usart.1 */
 		at91_add_device_can(1, NULL);
 
+	/* Push Buttons */
+	if (ek_is_revA())
+		ek_add_device_buttons();
+
 	/* SSC (for WM8731) */
 	at91_add_device_ssc(AT91SAM9X5_ID_SSC, ATMEL_SSC_TX | ATMEL_SSC_RX);
 
 	/* SMD */
 	at91_add_device_smd();
 
-	printk(KERN_CRIT "AT91: Ahern Fuel Controller\n");
+	if (ek_is_revA())
+		printk(KERN_CRIT "AT91: EK rev A\n");
+	else
+		printk(KERN_CRIT "AT91: EK rev B and higher\n");
 
 	/* print conflict information */
 	if (cm_config & CM_CONFIG_SPI0_ENABLE)
