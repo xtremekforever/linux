@@ -42,7 +42,7 @@
 
 #include "sam9_smc.h"
 #include "generic.h"
-#include <mach/board-sam9x5.h>
+#include <mach/board-sam9x5fc.h>
 
 void __init cm_map_io(void)
 {
@@ -221,9 +221,4 @@ void __init cm_board_init(u32 *cm_config)
 	*cm_config |= CM_CONFIG_I2C0_ENABLE;
 	/* LEDs */
 	at91_gpio_leds(cm_leds, ARRAY_SIZE(cm_leds));
-
-	if (cm_is_revA())
-		printk(KERN_CRIT "AT91: CM rev A\n");
-	else
-		printk(KERN_CRIT "AT91: CM rev B and higher\n");
 }

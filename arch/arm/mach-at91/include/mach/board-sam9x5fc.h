@@ -44,7 +44,7 @@
  * and is encoded in ATAGs: both system_serial_low and system_rev
  */
 
-#define CM_REV_OFFSET		0
+/*#define CM_REV_OFFSET		0
 #define CM_REV_SIZE		5
 #define CM_REV_ID_OFFSET	15
 #define CM_REV_ID_SIZE		3
@@ -55,10 +55,10 @@
 #define EK_REV_OFFSET		10
 #define EK_REV_SIZE		5
 #define EK_REV_ID_OFFSET	21
-#define EK_REV_ID_SIZE		3
+#define EK_REV_ID_SIZE		3*/
 
 /* Bit manipulation macros */
-#define OWI_BIT(name) \
+/*#define OWI_BIT(name) \
         (1 << name##_OFFSET)
 #define OWI_BF(name,value) \
         (((value) & ((1 << name##_SIZE) - 1)) << name##_OFFSET)
@@ -76,7 +76,7 @@
 #define cm_is_revB()	(cm_rev() == ('B' - 'A'))
 
 #define ek_is_revA()	(ek_rev() == 0)
-#define ek_is_revB()	(ek_rev() == ('B' - 'A'))
+#define ek_is_revB()	(ek_rev() == ('B' - 'A'))*/
 
 /* Configuration of CPU Module useful for mother board */
 #define CM_CONFIG_SPI0_ENABLE	(1 <<  0)
