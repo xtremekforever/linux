@@ -268,57 +268,6 @@ static struct at91_tsadcc_data ek_tsadcc_data = {
 };
 
 /*
- * GPIO Buttons
- */
-#if defined(CONFIG_KEYBOARD_GPIO) || defined(CONFIG_KEYBOARD_GPIO_MODULE)
-static struct gpio_keys_button ek_buttons[] = {
-	{	/* BP3, "leftclic" */
-		.code		= BTN_LEFT,
-		.gpio		= AT91_PIN_PD18,
-		.active_low	= 1,
-		.desc		= "left_click",
-		.wakeup		= 1,
-	},
-	{	/* BP4, "rightclic" */
-		.code		= BTN_RIGHT,
-		.gpio		= AT91_PIN_PD19,
-		.active_low	= 1,
-		.desc		= "right_click",
-		.wakeup		= 1,
-	},
-};
-
-static struct gpio_keys_platform_data ek_button_data = {
-	.buttons	= ek_buttons,
-	.nbuttons	= ARRAY_SIZE(ek_buttons),
-};
-
-static struct platform_device ek_button_device = {
-	.name		= "gpio-keys",
-	.id		= -1,
-	.num_resources	= 0,
-	.dev		= {
-		.platform_data	= &ek_button_data,
-	}
-};
-
-static void __init ek_add_device_buttons(void)
-{
-	int i;
-
-	for (i = 0; i < ARRAY_SIZE(ek_buttons); i++) {
-		at91_set_pulldown(ek_buttons[i].gpio, 0);
-		at91_set_gpio_input(ek_buttons[i].gpio, 1);
-		at91_set_deglitch(ek_buttons[i].gpio, 1);
-	}
-
-	platform_device_register(&ek_button_device);
-}
-#else
-static void __init ek_add_device_buttons(void) {}
-#endif
-
-/*
  * I2C Devices
  */
 static struct i2c_board_info __initdata ek_i2c_devices[] = {
@@ -331,6 +280,11 @@ static struct i2c_board_info __initdata ek_i2c_devices[] = {
 		.irq = AT91_PIN_PA7,
 		.flags = I2C_CLIENT_WAKE,
 	},
+#endif
+#if defined(CONFIG_KEYBOARD_TCA8418)
+  {
+		I2C_BOARD_INFO("tca8418_keypad", 0x34),
+  },
 #endif
 };
 
