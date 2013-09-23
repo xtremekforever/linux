@@ -402,9 +402,6 @@ static void __init ek_board_init(void)
 		/* this conflicts with usart.1 */
 		at91_add_device_can(1, NULL);
 
-	/* Push Buttons */
-	if (ek_is_revA())
-		ek_add_device_buttons();
 
 	/* SSC (for WM8731) */
 	at91_add_device_ssc(AT91SAM9X5_ID_SSC, ATMEL_SSC_TX | ATMEL_SSC_RX);
