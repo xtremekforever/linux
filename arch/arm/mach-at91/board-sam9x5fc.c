@@ -238,13 +238,15 @@ static void __init ek_board_init(void)
 	/* MMC0 */
 	at91_add_device_mci(0, &mci0_data);
 	/* I2C */
-	//if (cm_config & CM_CONFIG_I2C0_ENABLE)
+	/*if (cm_config & CM_CONFIG_I2C0_ENABLE)
 		i2c_register_board_info(0,
 				ek_i2c_devices, ARRAY_SIZE(ek_i2c_devices));
-	/*else
+	else
 		at91_add_device_i2c(0,
 				ek_i2c_devices, ARRAY_SIZE(ek_i2c_devices));
   */
+
+	i2c_register_board_info(0, ek_i2c_devices, ARRAY_SIZE(ek_i2c_devices));
 
 	if (!cpu_is_at91sam9x25()) {
 		/* LCD Controller */

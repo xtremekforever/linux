@@ -324,7 +324,7 @@ static int __devinit tca8418_keypad_probe(struct i2c_client *client,
 	/* Initialize the chip or fail if chip isn't present */
 	error = tca8418_configure(keypad_data);
 	if (error < 0)
-		goto fail1;
+  	goto fail1;
 
 	/* Configure input device */
 	input = input_allocate_device();
