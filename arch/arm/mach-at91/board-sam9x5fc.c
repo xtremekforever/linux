@@ -25,6 +25,8 @@
 #include <linux/delay.h>
 #include <mach/cpu.h>
 
+#include <linux/input/tca8418_keypad.h>
+
 #include <video/atmel_lcdfb.h>
 #include <media/soc_camera.h>
 #include <media/atmel-isi.h>
@@ -177,6 +179,29 @@ static struct at91_tsadcc_data ek_tsadcc_data = {
 	.ts_sample_hold_time	= 0x0a,
 };
 
+#if defined(CONFIG_KEYBOARD_TCA8418)
+
+static uint32_t fc_keymap[] = {
+  KEY(0, 0, KEY_1),
+  0
+};
+
+static struct matrix_keymap_data fc_key_data = {
+  .keymap         = fc_keymap,
+  .keymap_size    = ARRAY_SIZE(fc_keymap),
+};
+
+
+static struct tca8418_keypad_platform_data fc_keys_info = {
+  .keymap_data    = &fc_key_data,
+  .rows           = 4,
+  .cols           = 3,
+  .rep            = 1,
+  .irq_is_gpio    = 0
+};
+
+#endif
+
 /*
  * I2C Devices
  */
@@ -193,7 +218,9 @@ static struct i2c_board_info __initdata ek_i2c_devices[] = {
 #endif
 #if defined(CONFIG_KEYBOARD_TCA8418)
   {
-		I2C_BOARD_INFO("tca8418_keypad", 0x34)
+		I2C_BOARD_INFO("tca8418_keypad", 0x34),
+    .platform_data = &fc_keys_info,
+    .irq = I2C_CLIENT_WAKE,
   },
 #endif
 };
@@ -238,15 +265,12 @@ static void __init ek_board_init(void)
 	/* MMC0 */
 	at91_add_device_mci(0, &mci0_data);
 	/* I2C */
-	/*if (cm_config & CM_CONFIG_I2C0_ENABLE)
+	if (cm_config & CM_CONFIG_I2C0_ENABLE)
 		i2c_register_board_info(0,
 				ek_i2c_devices, ARRAY_SIZE(ek_i2c_devices));
 	else
 		at91_add_device_i2c(0,
 				ek_i2c_devices, ARRAY_SIZE(ek_i2c_devices));
-  */
-
-	i2c_register_board_info(0, ek_i2c_devices, ARRAY_SIZE(ek_i2c_devices));
 
 	if (!cpu_is_at91sam9x25()) {
 		/* LCD Controller */
