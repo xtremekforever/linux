@@ -141,9 +141,9 @@ static int tca8418_write_byte(struct tca8418_keypad *keypad_data,
 
 	error = i2c_smbus_write_byte_data(keypad_data->client, reg, val);
 	if (error < 0) {
-		dev_err(&keypad_data->client->dev,
+		/*dev_err(&keypad_data->client->dev,
 			"%s failed, reg: %d, val: %d, error: %d\n",
-			__func__, reg, val, error);
+			__func__, reg, val, error);*/
 		return error;
 	}
 
@@ -254,6 +254,14 @@ static int __devinit tca8418_configure(struct tca8418_keypad *keypad_data)
 				CFG_INT_CFG | CFG_OVR_FLOW_IEN | CFG_KE_IEN);
 
     keypad_data->client->addr = addr;
+
+    if (error >= 0) {
+      dev_err(&keypad_data->client->dev,
+			"%s: Writing to %d succeeded\n", __func__, addr);
+    } else {
+      dev_err(&keypad_data->client->dev,
+			"%s: Writing to %d failed\n", __func__, addr);
+    }
 
     if (addr == 0xFF) {
       addr = 0;
