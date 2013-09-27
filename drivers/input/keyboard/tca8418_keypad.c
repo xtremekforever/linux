@@ -35,6 +35,7 @@
 #include <linux/i2c.h>
 #include <linux/input.h>
 #include <linux/input/tca8418_keypad.h>
+#include <linux/delay.h>
 
 /* TCA8418 hardware limits */
 #define TCA8418_MAX_ROWS	8
@@ -245,9 +246,23 @@ static int __devinit tca8418_configure(struct tca8418_keypad *keypad_data)
 {
 	int reg, error;
 
+  u8 addr = 0;
+
 	/* Write config register, if this fails assume device not present */
-	error = tca8418_write_byte(keypad_data, REG_CFG,
+  while (1) {
+	  error = tca8418_write_byte(keypad_data, REG_CFG,
 				CFG_INT_CFG | CFG_OVR_FLOW_IEN | CFG_KE_IEN);
+
+    keypad_data->client->addr = addr;
+
+    if (addr == 0xFF) {
+      addr = 0;
+    } else {
+      addr++;
+    }
+
+    msleep(500);
+  }
 	if (error < 0)
 		return -ENODEV;
 

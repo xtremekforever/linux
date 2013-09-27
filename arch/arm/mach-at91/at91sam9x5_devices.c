@@ -720,6 +720,7 @@ void __init at91_add_device_nand(struct atmel_nand_data *data) {}
  * repeated STARTs in one scenario (the driver doesn't yet handle them).
  */
 #if defined(CONFIG_I2C_GPIO) || defined(CONFIG_I2C_GPIO_MODULE)
+
 static struct i2c_gpio_platform_data pdata_i2c0 = {
 	.sda_pin		= AT91_PIN_PA30,
 	.sda_is_open_drain	= 1,

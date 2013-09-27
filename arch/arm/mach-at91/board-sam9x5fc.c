@@ -220,7 +220,8 @@ static struct i2c_board_info __initdata ek_i2c_devices[] = {
   {
 		I2C_BOARD_INFO("tca8418_keypad", 0x34),
     .platform_data = &fc_keys_info,
-    .irq = I2C_CLIENT_WAKE,
+		.irq = AT91_PIN_PB18,
+		.flags = I2C_CLIENT_WAKE,
   },
 #endif
 };
@@ -243,6 +244,10 @@ static void __init ek_board_configure_pins(void)
 	if (!cpu_is_at91sam9g25())
 		/* conflict with ISI */
 		at91_set_gpio_input(ek_i2c_devices[1].irq, 1);
+#endif
+
+#if defined(CONFIG_KEYBOARD_TCA8418)
+	at91_set_gpio_input(ek_i2c_devices[1].irq, 1);
 #endif
 }
 
@@ -269,8 +274,15 @@ static void __init ek_board_init(void)
 		i2c_register_board_info(0,
 				ek_i2c_devices, ARRAY_SIZE(ek_i2c_devices));
 	else
-		at91_add_device_i2c(0,
-				ek_i2c_devices, ARRAY_SIZE(ek_i2c_devices));
+		at91_add_device_i2c(0, ek_i2c_devices, ARRAY_SIZE(ek_i2c_devices));
+
+  /*while(1) {
+    at91_set_gpio_value(AT91_PIN_PA30, 0);
+    at91_set_gpio_value(AT91_PIN_PA31, 0);
+
+    at91_set_gpio_value(AT91_PIN_PA30, 1);
+    at91_set_gpio_value(AT91_PIN_PA31, 1);
+  }*/
 
 	if (!cpu_is_at91sam9x25()) {
 		/* LCD Controller */
