@@ -249,12 +249,12 @@ static int __devinit tca8418_configure(struct tca8418_keypad *keypad_data)
   u8 addr = 0;
 
 	/* Write config register, if this fails assume device not present */
-  while (1) {
+  //while (1) {
     error = tca8418_write_byte(keypad_data, REG_CFG, 
                              CFG_INT_CFG | CFG_OVR_FLOW_IEN | CFG_KE_IEN);
 
 
-    keypad_data->client->addr = addr;
+  /*  keypad_data->client->addr = addr;
 
     if (error >= 0) {
       dev_err(&keypad_data->client->dev,
@@ -271,7 +271,7 @@ static int __devinit tca8418_configure(struct tca8418_keypad *keypad_data)
     }
 
     msleep(500);
-  }
+  }*/
 
 	if (error < 0)
 		return -ENODEV;

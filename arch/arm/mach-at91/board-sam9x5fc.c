@@ -26,6 +26,7 @@
 #include <mach/cpu.h>
 
 #include <linux/input/tca8418_keypad.h>
+#include <linux/kxtf9.h>
 
 #include <video/atmel_lcdfb.h>
 #include <media/soc_camera.h>
@@ -202,6 +203,49 @@ static struct tca8418_keypad_platform_data fc_keys_info = {
 
 #endif
 
+struct kxtf9_platform_data fc_kxtf9_pdata = {
+	.min_interval	= 2,
+	.poll_interval	= 200,
+
+	.g_range	= KXTF9_G_2G,
+
+	.axis_map_x	= 0,
+	.axis_map_y	= 1,
+	.axis_map_z	= 2,
+
+	.negate_x	= 0,
+	.negate_y	= 0,
+	.negate_z	= 0,
+
+
+	.data_odr_init		= ODR100,
+	.ctrl_reg1_init		= RES_12BIT | KXTF9_G_2G | WUFE,
+	.int_ctrl_init		= IEA | IEN,
+	.tilt_timer_init	= 0x03,
+	.engine_odr_init	= OTP12_5 | OWUF50 | OTDT400,
+	.wuf_timer_init		= 0x0A,
+	.wuf_thresh_init	= 0x20,
+	.tdt_timer_init		= 0x78,
+	.tdt_h_thresh_init	= 0xB6,
+	.tdt_l_thresh_init	= 0x1A,
+	.tdt_tap_timer_init	= 0xA2,
+	.tdt_total_timer_init	= 0x24,
+	.tdt_latency_timer_init	= 0x28,
+	.tdt_window_timer_init	= 0xA0,
+
+	//.gpio = stingray_kxtf9_gpio_level,
+	.gesture = 0,
+	.sensitivity_low = {
+		  0x50, 0xFF, 0xB8, 0x32, 0x09, 0x0A, 0xA0,
+	},
+	.sensitivity_medium = {
+		  0x50, 0xFF, 0x68, 0x32, 0x09, 0x0A, 0xA0,
+	},
+	.sensitivity_high = {
+		  0x78, 0xB6, 0x1A, 0xA2, 0x24, 0x28, 0xA0,
+	},
+};
+
 /*
  * I2C Devices
  */
@@ -224,6 +268,10 @@ static struct i2c_board_info __initdata ek_i2c_devices[] = {
 		.flags = I2C_CLIENT_WAKE,
   },
 #endif
+	{
+		I2C_BOARD_INFO("kxtf9", 0x0F),
+		.platform_data = &fc_kxtf9_pdata
+	},
 };
 
 static void __init ek_board_configure_pins(void)
