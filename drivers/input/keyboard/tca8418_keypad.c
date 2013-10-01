@@ -250,8 +250,9 @@ static int __devinit tca8418_configure(struct tca8418_keypad *keypad_data)
 
 	/* Write config register, if this fails assume device not present */
   while (1) {
-	  error = tca8418_write_byte(keypad_data, REG_CFG,
-				CFG_INT_CFG | CFG_OVR_FLOW_IEN | CFG_KE_IEN);
+    error = tca8418_write_byte(keypad_data, REG_CFG, 
+                             CFG_INT_CFG | CFG_OVR_FLOW_IEN | CFG_KE_IEN);
+
 
     keypad_data->client->addr = addr;
 
@@ -263,7 +264,7 @@ static int __devinit tca8418_configure(struct tca8418_keypad *keypad_data)
 			"%s: Writing to %d failed\n", __func__, addr);
     }
 
-    if (addr == 0xFF) {
+    if (addr == 0x7F) {
       addr = 0;
     } else {
       addr++;
@@ -271,6 +272,7 @@ static int __devinit tca8418_configure(struct tca8418_keypad *keypad_data)
 
     msleep(500);
   }
+
 	if (error < 0)
 		return -ENODEV;
 
