@@ -203,6 +203,11 @@ static struct tca8418_keypad_platform_data fc_keys_info = {
 
 #endif
 
+static int fc_kxtf9_gpio_level(void)
+{
+	return at91_get_gpio_value(AT91_PIN_PC6);
+}
+
 struct kxtf9_platform_data fc_kxtf9_pdata = {
 	.min_interval	= 2,
 	.poll_interval	= 200,
@@ -233,7 +238,7 @@ struct kxtf9_platform_data fc_kxtf9_pdata = {
 	.tdt_latency_timer_init	= 0x28,
 	.tdt_window_timer_init	= 0xA0,
 
-	//.gpio = stingray_kxtf9_gpio_level,
+	.gpio = fc_kxtf9_gpio_level,
 	.gesture = 0,
 	.sensitivity_low = {
 		  0x50, 0xFF, 0xB8, 0x32, 0x09, 0x0A, 0xA0,

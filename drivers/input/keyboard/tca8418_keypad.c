@@ -246,7 +246,7 @@ static int __devinit tca8418_configure(struct tca8418_keypad *keypad_data)
 {
 	int reg, error;
 
-  u8 addr = 0;
+  //u8 addr = 0;
 
 	/* Write config register, if this fails assume device not present */
   //while (1) {

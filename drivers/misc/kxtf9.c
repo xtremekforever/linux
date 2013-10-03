@@ -112,8 +112,10 @@
 #define I2C_RETRIES             5
 #define AUTO_INCREMENT          0x80
 
-static uint32_t kxtf9_dbg;
-module_param(kxtf9_dbg, uint, 0664);
+//static uint32_t kxtf9_dbg;
+//module_param(kxtf9_dbg, uint, 0664);
+
+static uint32_t kxtf9_dbg = 1;
 
 struct {
         unsigned int cutoff;
