@@ -58,6 +58,12 @@ static void __init ek_map_io(void)
 
 	/* USART0 on ttyS1. (Rx, Tx) */
 	at91_register_uart(AT91SAM9X5_ID_USART0, 1, 0);
+
+	/* USART1 on ttyS2. (Rx, Tx) */
+	at91_register_uart(AT91SAM9X5_ID_USART1, 2, 0);
+
+	/* USART2 on ttyS3. (Rx, Tx) */
+	at91_register_uart(AT91SAM9X5_ID_USART2, 3, 0);
 }
 
 /*
@@ -255,16 +261,6 @@ struct kxtf9_platform_data fc_kxtf9_pdata = {
  * I2C Devices
  */
 static struct i2c_board_info __initdata ek_i2c_devices[] = {
-	{
-		I2C_BOARD_INFO("wm8731", 0x1a)
-	},
-#if defined(CONFIG_KEYBOARD_QT1070)
-	{
-		I2C_BOARD_INFO("qt1070", 0x1b),
-		.irq = AT91_PIN_PA7,
-		.flags = I2C_CLIENT_WAKE,
-	},
-#endif
 #if defined(CONFIG_KEYBOARD_TCA8418)
   {
 		I2C_BOARD_INFO("tca8418_keypad", 0x34),
@@ -275,7 +271,9 @@ static struct i2c_board_info __initdata ek_i2c_devices[] = {
 #endif
 	{
 		I2C_BOARD_INFO("kxtf9", 0x0F),
-		.platform_data = &fc_kxtf9_pdata
+		.platform_data = &fc_kxtf9_pdata,
+		.irq = AT91_PIN_PC6,
+		.flags = I2C_CLIENT_WAKE,
 	},
 };
 
@@ -291,17 +289,11 @@ static void __init ek_board_configure_pins(void)
 
 	ek_macb0_data.phy_irq_pin = AT91_PIN_PB8;
 
-	mci0_data.slot[0].detect_pin = AT91_PIN_PD15;
-
-#if defined(CONFIG_KEYBOARD_QT1070)
-	if (!cpu_is_at91sam9g25())
-		/* conflict with ISI */
-		at91_set_gpio_input(ek_i2c_devices[1].irq, 1);
-#endif
-
 #if defined(CONFIG_KEYBOARD_TCA8418)
-	at91_set_gpio_input(ek_i2c_devices[1].irq, 1);
+	at91_set_gpio_input(AT91_PIN_PB18, 1);
 #endif
+
+	at91_set_gpio_input(AT91_PIN_PC6, 1);
 }
 
 static void __init ek_board_init(void)
@@ -361,13 +353,9 @@ static void __init ek_board_init(void)
 		at91_add_device_can(0, NULL);
 #endif
 
-	if (cpu_is_at91sam9x25() || cpu_is_at91sam9x35())
-		/* this conflicts with usart.1 */
-		at91_add_device_can(1, NULL);
-
 
 	/* SSC (for WM8731) */
-	at91_add_device_ssc(AT91SAM9X5_ID_SSC, ATMEL_SSC_TX | ATMEL_SSC_RX);
+	//at91_add_device_ssc(AT91SAM9X5_ID_SSC, ATMEL_SSC_TX | ATMEL_SSC_RX);
 
 	/* SMD */
 	at91_add_device_smd();

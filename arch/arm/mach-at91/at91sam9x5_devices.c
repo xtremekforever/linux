@@ -1733,13 +1733,13 @@ static struct platform_device at91sam9x5_usart3_device = {
 
 static inline void configure_usart3_pins(unsigned pins)
 {
-	at91_set_B_periph(AT91_PIN_PC22, 1);		/* TXD3 */
+	//at91_set_B_periph(AT91_PIN_PC22, 1);		/* TXD3 */
 	at91_set_B_periph(AT91_PIN_PC23, 0);		/* RXD3 */
 
-	if (pins & ATMEL_UART_RTS)
-		at91_set_B_periph(AT91_PIN_PC24, 0);	/* RTS3 */
-	if (pins & ATMEL_UART_CTS)
-		at91_set_B_periph(AT91_PIN_PC25, 0);	/* CTS3 */
+	//if (pins & ATMEL_UART_RTS)
+	//	at91_set_B_periph(AT91_PIN_PC24, 0);	/* RTS3 */
+	//if (pins & ATMEL_UART_CTS)
+	//	at91_set_B_periph(AT91_PIN_PC25, 0);	/* CTS3 */
 }
 
 static struct resource uart0_resources[] = {

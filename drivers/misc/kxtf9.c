@@ -34,6 +34,8 @@
 
 #include <linux/kxtf9.h>
 
+#define KXTF9_OPEN_ENABLE     1
+
 #define NAME                    "kxtf9"
 #define G_MAX                   8000
 #define SHIFT_ADJ_2G            4
@@ -701,6 +703,8 @@ static int kxtf9_enable(struct kxtf9_data *tf9)
                                  msecs_to_jiffies(tf9->pdata->poll_interval));
         }
 
+        pr_info("%s: Device enabled\n", __func__);
+
         return 0;
 }
 
@@ -957,6 +961,7 @@ static void kxtf9_input_work_func(struct work_struct *work)
 }
 
 #ifdef KXTF9_OPEN_ENABLE
+
 int kxtf9_input_open(struct input_dev *input)
 {
         struct kxtf9_data *tf9 = input_get_drvdata(input);
@@ -1005,6 +1010,8 @@ static int kxtf9_input_init(struct kxtf9_data *tf9)
         int int_status = 0;
         u8 buf;
 
+        pr_err("%s: Start init\n", __func__);
+
         tf9->input_work_queue = create_singlethread_workqueue("kxtf9_input_wq");
         if (!tf9->input_work_queue) {
                 err = -ENOMEM;
@@ -1019,7 +1026,7 @@ static int kxtf9_input_init(struct kxtf9_data *tf9)
                         "input device allocate failed: %d\n", err);
                 goto err1;
         }
-#ifdef kxtf9_OPEN_ENABLE
+#ifdef KXTF9_OPEN_ENABLE
         tf9->input_dev->open = kxtf9_input_open;
         tf9->input_dev->close = kxtf9_input_close;
 #endif
