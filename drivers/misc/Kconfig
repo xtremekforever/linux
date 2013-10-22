@@ -20,6 +20,12 @@ menuconfig MISC_DEVICES
 
 if MISC_DEVICES
 
+config AHERN_PUMP
+    tristate "Ahern Fuel Pump IO Driver"
+    depends on ARCH_AT91SAM9X5
+    help
+      This enables the Ahern Fuel Controller Pump driver for the Linux kernel.
+
 config AD525X_DPOT
 	tristate "Analog Devices Digital Potentiometers"
 	depends on (I2C || SPI) && SYSFS

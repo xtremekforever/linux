@@ -1,0 +1,18 @@
+
+#ifndef _AHERN_PUMP_H_
+#define _AHERN_PUMP_H_
+
+#include <linux/ioctl.h>
+
+// ioctl() defines
+#define AHERN_PUMP_IOC_MAGIC 'a'
+
+#define AHERN_PUMP_IOCTL_1_ENABLE     _IO(AHERN_PUMP_IOC_MAGIC, 1)
+#define AHERN_PUMP_IOCTL_2_ENABLE     _IO(AHERN_PUMP_IOC_MAGIC, 2)
+
+#define AHERN_PUMP_IOCTL_1_DISABLE    _IO(AHERN_PUMP_IOC_MAGIC, 3)
+#define AHERN_PUMP_IOCTL_2_DISABLE    _IO(AHERN_PUMP_IOC_MAGIC, 4)
+
+#define AHERN_PUMP_NOT_AUTHORIZED   -1
+
+#endif
