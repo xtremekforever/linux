@@ -14,21 +14,15 @@
 #include <asm/uaccess.h>
 #include <asm/gpio.h>
 
+
 #define PUMP_DEBUG
 
-#define AHERN_PUMP_1_ENABLE       AT91_PIN_PC26
-#define AHERN_PUMP_2_ENABLE       AT91_PIN_PC27
-#define AHERN_PUMP_1_PULSE        AT91_PIN_PC28
-#define AHERN_PUMP_2_PULSE        AT91_PIN_PC29
+#define AHERN_PUMP_1_ENABLE   AT91_PIN_PC26
+#define AHERN_PUMP_2_ENABLE   AT91_PIN_PC27
+#define AHERN_PUMP_1_PULSE    AT91_PIN_PC28
+#define AHERN_PUMP_2_PULSE    AT91_PIN_PC29
 
-int pump_major = 0, pump_minor = 0;
 int pump_1_authorized, pump_2_authorized;
-
-struct pump_dev {
-  struct cdev cdev;
-};
-
-struct pump_dev pump_device;
 
 int pump_release(struct inode *inode, struct file *filp)
 {
@@ -39,11 +33,6 @@ int pump_open(struct inode *inode, struct file *filp)
 {
   return 0;
 }
-
-/*int pump_authorized()
-{
-  return pump_1_authorized || pump_2_authorized;
-}*/
 
 long pump_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 {
@@ -98,43 +87,21 @@ struct file_operations pump_fops = {
   .release        = pump_release,
 };
 
-static void pump_setup_cdev(struct pump_dev *dev)
-{
-  int err;
-    
-  cdev_init(&dev->cdev, &pump_fops);
-  dev->cdev.owner = THIS_MODULE;
-  dev->cdev.ops = &pump_fops;
-  err = cdev_add (&dev->cdev, MKDEV(pump_major, pump_minor), 1);
-    
-  if (err) {
-    printk(KERN_NOTICE "Error %d adding ahern_pump!\n", err);
-  }
-}
-
 static void __exit pump_exit(void)
-{
-  dev_t devno = MKDEV(pump_major, pump_minor);
-    
-  cdev_del(&pump_device.cdev);
-    
-  unregister_chrdev_region(devno, 1);
+{    
+  unregister_chrdev(AHERN_PUMP_MAJOR_NUM, "pump");
 }
 
 static int __init pump_init(void)
 {
   int ret;
-  dev_t dev = 0;
-    
-  ret = alloc_chrdev_region(&dev, pump_minor, 1, "pump");
-  pump_major = MAJOR(dev);
+
+  ret = register_chrdev(AHERN_PUMP_MAJOR_NUM, "pump", &pump_fops);
     
   if (ret < 0) {
-    printk(KERN_WARNING "ahern_pump: can't get major %d\n", pump_major);
+    printk(KERN_WARNING "ahern_pump: error registering character device: %d\n", ret);
     return ret;
   }
-    
-  pump_setup_cdev(&pump_device);
 
 #ifdef PUMP_DEBUG
   printk(KERN_INFO "pump_init(): loaded Ahern Fuel Pump driver successfully!\n");
