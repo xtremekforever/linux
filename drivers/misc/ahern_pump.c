@@ -29,6 +29,7 @@
 
 int pump_interface_authorize(struct pump_interface * );
 int pump_interface_deauthorize(struct pump_interface * );
+bool pump_interface_enabled(struct pump_interface * pump);
 
 char pump_buf[AHERN_PUMP_BUF_SIZE];
 
@@ -36,20 +37,13 @@ static struct delayed_work pump_work;
 
 struct pump_interface pump_1 = {
   .enable_pin = AHERN_PUMP_1_ENABLE,
-  .pulse_pin = AHERN_PUMP_1_PULSE,
-  .number = 1
+  .pulse_pin = AHERN_PUMP_1_PULSE
 };
 
 struct pump_interface pump_2 = {
   .enable_pin = AHERN_PUMP_2_ENABLE,
-  .pulse_pin = AHERN_PUMP_2_PULSE,
-  .number = 2
+  .pulse_pin = AHERN_PUMP_2_PULSE
 };
-
-int pump_authorized(void)
-{
-  return pump_1.authorized || pump_2.authorized;
-}
 
 int pump_release(struct inode *inode, struct file *filp)
 {
@@ -61,31 +55,40 @@ int pump_open(struct inode *inode, struct file *filp)
   return 0;
 }
 
+struct pump_interface * pump_interface_select(int number)
+{
+  switch (number) {
+  case AHERN_PUMP_1:
+    return &pump_1;
+  case AHERN_PUMP_2:
+    return &pump_2;
+  }
+
+  return NULL;
+}
+
 long pump_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 {
   int ret = 0;
-    
-#if defined PUMP_DEBUG
-  printk(KERN_INFO "pump.ioctl(): ");
-#endif
 
-  if (cmd == AHERN_PUMP_IOCTL_1_ENABLE || 
-      cmd == AHERN_PUMP_IOCTL_2_ENABLE) {
-    if (pump_authorized()) return AHERN_PUMP_INTERFACE_BUSY;
-  }
+  struct pump_interface * pump;
 
   switch (cmd) {
-  case AHERN_PUMP_IOCTL_1_ENABLE:
-    ret = pump_interface_authorize(&pump_1);
+  case AHERN_PUMP_IOCTL_AUTHORIZE:
+    pump = pump_interface_select(arg);
+    if (pump == NULL) {
+      ret = AHERN_PUMP_NOT_AVAILABLE;
+    } else {
+      ret = pump_interface_authorize(&pump_1);
+    }
     break;
-  case AHERN_PUMP_IOCTL_1_DISABLE:
-    ret = pump_interface_deauthorize(&pump_1);
-    break;
-  case AHERN_PUMP_IOCTL_2_ENABLE:
-    ret = pump_interface_authorize(&pump_2);
-    break;
-  case AHERN_PUMP_IOCTL_2_DISABLE:
-    ret = pump_interface_deauthorize(&pump_2);
+  case AHERN_PUMP_IOCTL_DEAUTHORIZE:
+    pump = pump_interface_select(arg);
+    if (pump == NULL) {
+      ret = AHERN_PUMP_NOT_AVAILABLE;
+    } else {
+      ret = pump_interface_deauthorize(&pump_1);
+    }
     break;
   }
 
@@ -94,35 +97,37 @@ long pump_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 
 void pump_interface_init(struct pump_interface * pump)
 {
-  at91_set_gpio_output(pump->enable_pin, 1);
+  at91_set_gpio_output(pump->enable_pin, 0);
   at91_set_gpio_input(pump->pulse_pin, 1);
 
   pump->val = 1;
   pump->prev = 1;
-  pump->authorized = false;
   pump->ticks = 0;
 }
 
 void pump_interface_handle(struct pump_interface * pump)
 {
+  bool authorized = pump_interface_enabled(pump);
+
   pump->val = at91_get_gpio_value(pump->pulse_pin);
   if (pump->val != pump->prev) {
-    if (pump->val == 0 && pump->authorized) {
-#ifdef PUMP_DEBUG
-    printk(KERN_INFO "Pump %d Tick\n", pump->number);
-#endif
+    if (pump->val == 0 && authorized) {
       pump->ticks++;
     }
     pump->prev = pump->val;
   }
 }
 
+bool pump_interface_enabled(struct pump_interface * pump)
+{
+  return at91_get_gpio_value(pump->enable_pin);
+}
+
 int pump_interface_authorize(struct pump_interface * pump)
 {
-  if (pump->authorized) return AHERN_PUMP_INTERFACE_BUSY;
+  if (pump_interface_enabled(pump)) return AHERN_PUMP_INTERFACE_BUSY;
 
   at91_set_gpio_value(pump->enable_pin, 1);
-  pump->authorized = true;
   pump->ticks = 0;
 
   //start delayed timer
@@ -133,10 +138,9 @@ int pump_interface_authorize(struct pump_interface * pump)
 
 int pump_interface_deauthorize(struct pump_interface * pump)
 {
-  if (!pump->authorized) return AHERN_PUMP_NOT_AUTHORIZED;
+  if (!pump_interface_enabled(pump)) return AHERN_PUMP_NOT_AUTHORIZED;
 
   at91_set_gpio_value(pump->enable_pin, 0);
-  pump->authorized = false;
 
   //cancel delayed timer
   cancel_delayed_work(&pump_work);
@@ -156,21 +160,26 @@ ssize_t pump_read(struct file *fi, char __user *buf, size_t count,
                     loff_t *f_pos)
 {
   int rc = 0;
-
-  memset(pump_buf, 0, sizeof(pump_buf) - 1);
-  if (pump_1.authorized) {
-    sprintf(pump_buf, "%d\n", pump_1.ticks);
-    rc = strlen(pump_buf);
-  } else if (pump_2.authorized) {
-    sprintf(pump_buf, "%d\n", pump_2.ticks);
-    rc = strlen(pump_buf);
+  uint32_t ticks = 0;
+  
+  if (pump_interface_enabled(&pump_1)) {
+    ticks = pump_1.ticks;
+  } else if (pump_interface_enabled(&pump_2)) {
+    ticks = pump_2.ticks;
   } else {
     rc = AHERN_PUMP_NOT_AUTHORIZED;
   }
 
-  if (copy_to_user(buf, pump_buf, strlen(pump_buf))) {
-    printk(KERN_ERR "pump_read(): Error copying data to userspace!\n");
-    return -EFAULT;
+  if (ticks > 0) {
+    memset(pump_buf, 0, sizeof(pump_buf) - 1);
+
+    sprintf(pump_buf, "%u\n", pump_1.ticks);
+    rc = strlen(pump_buf);
+
+    if (copy_to_user(buf, pump_buf, strlen(pump_buf))) {
+      printk(KERN_ERR "pump_read(): Error copying data to userspace!\n");
+      return -EFAULT;
+    }
   }
 
   return rc;
@@ -179,7 +188,7 @@ ssize_t pump_read(struct file *fi, char __user *buf, size_t count,
 struct file_operations pump_fops = {
   .owner          = THIS_MODULE,
   .read           = pump_read,
-  .compat_ioctl   = pump_ioctl,
+  .unlocked_ioctl = pump_ioctl,
   .open           = pump_open,
   .release        = pump_release,
 };
