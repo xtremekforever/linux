@@ -77,7 +77,7 @@ long pump_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
   case AHERN_PUMP_IOCTL_AUTHORIZE:
     pump = pump_interface_select(arg);
     if (pump == NULL) {
-      ret = AHERN_PUMP_NOT_AVAILABLE;
+      ret = -ENODEV;
     } else {
       ret = pump_interface_authorize(&pump_1);
     }
@@ -85,7 +85,7 @@ long pump_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
   case AHERN_PUMP_IOCTL_DEAUTHORIZE:
     pump = pump_interface_select(arg);
     if (pump == NULL) {
-      ret = AHERN_PUMP_NOT_AVAILABLE;
+      ret = -ENODEV;
     } else {
       ret = pump_interface_deauthorize(&pump_1);
     }
@@ -125,7 +125,7 @@ bool pump_interface_enabled(struct pump_interface * pump)
 
 int pump_interface_authorize(struct pump_interface * pump)
 {
-  if (pump_interface_enabled(pump)) return AHERN_PUMP_INTERFACE_BUSY;
+  if (pump_interface_enabled(pump)) return -EBUSY;
 
   at91_set_gpio_value(pump->enable_pin, 1);
   pump->ticks = 0;
@@ -138,7 +138,7 @@ int pump_interface_authorize(struct pump_interface * pump)
 
 int pump_interface_deauthorize(struct pump_interface * pump)
 {
-  if (!pump_interface_enabled(pump)) return AHERN_PUMP_NOT_AUTHORIZED;
+  if (!pump_interface_enabled(pump)) return -EACCES;
 
   at91_set_gpio_value(pump->enable_pin, 0);
 
@@ -161,25 +161,28 @@ ssize_t pump_read(struct file *fi, char __user *buf, size_t count,
 {
   int rc = 0;
   uint32_t ticks = 0;
-  
+
+  memset(pump_buf, 0, sizeof(pump_buf) - 1);
+
   if (pump_interface_enabled(&pump_1)) {
     ticks = pump_1.ticks;
   } else if (pump_interface_enabled(&pump_2)) {
     ticks = pump_2.ticks;
   } else {
-    rc = AHERN_PUMP_NOT_AUTHORIZED;
+    rc = -EACCES;
   }
 
   if (ticks > 0) {
-    memset(pump_buf, 0, sizeof(pump_buf) - 1);
-
     sprintf(pump_buf, "%u\n", pump_1.ticks);
     rc = strlen(pump_buf);
+  }
 
+  if (strlen(pump_buf) > 0) {
     if (copy_to_user(buf, pump_buf, strlen(pump_buf))) {
       printk(KERN_ERR "pump_read(): Error copying data to userspace!\n");
       return -EFAULT;
     }
+    rc = strlen(pump_buf);
   }
 
   return rc;

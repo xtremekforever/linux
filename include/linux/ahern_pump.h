@@ -12,11 +12,6 @@
 #define AHERN_PUMP_1          			1
 #define AHERN_PUMP_2          			2
 
-#define AHERN_PUMP_NOT_AUTHORIZED  	-1
-#define AHERN_PUMP_INTERFACE_BUSY		-2
-#define AHERN_PUMP_NOT_AVAILABLE		-3
-#define AHERN_PUMP_ENABLE_ERROR			-4
-
 struct pump_interface {
   int enable_pin;
   int pulse_pin;
