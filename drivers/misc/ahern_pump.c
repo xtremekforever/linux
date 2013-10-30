@@ -61,9 +61,9 @@ struct pump_interface * pump_interface_select(int number)
   case AHERN_PUMP_1:
     return &pump_1;
   case AHERN_PUMP_2:
-    return &pump_2;
+    return &pump_2;  
   }
-
+  
   return NULL;
 }
 
@@ -79,7 +79,7 @@ long pump_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
     if (pump == NULL) {
       ret = -ENODEV;
     } else {
-      ret = pump_interface_authorize(&pump_1);
+      ret = pump_interface_authorize(pump);
     }
     break;
   case AHERN_PUMP_IOCTL_DEAUTHORIZE:
@@ -87,8 +87,11 @@ long pump_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
     if (pump == NULL) {
       ret = -ENODEV;
     } else {
-      ret = pump_interface_deauthorize(&pump_1);
+      ret = pump_interface_deauthorize(pump);
     }
+    break;
+  default:
+    ret = -EINVAL;
     break;
   }
 
