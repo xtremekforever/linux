@@ -19,7 +19,7 @@
 
 #define PUMP_DEBUG
 
-#define AHERN_PUMP_WORK_DELAY 5
+#define AHERN_PUMP_WORK_DELAY 1
 #define AHERN_PUMP_BUF_SIZE   64
 
 #define AHERN_PUMP_1_ENABLE   AT91_PIN_PC26
@@ -176,7 +176,7 @@ ssize_t pump_read(struct file *fi, char __user *buf, size_t count,
   }
 
   if (ticks > 0) {
-    sprintf(pump_buf, "%u\n", pump_1.ticks);
+    sprintf(pump_buf, "%u\n", ticks);
     rc = strlen(pump_buf);
   }
 
